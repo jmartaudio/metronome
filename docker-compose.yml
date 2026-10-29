@@ -4,5 +4,16 @@ services:
     image: metronome:latest
     platform: linux/amd64
     ports:
-      - "8080:80"
+      - "8085:80"
     restart: unless-stopped
+    - "traefik.enable=true"
+      - "traefik.http.routers.metronome.entrypoints=http"
+      - "traefik.http.routers.metronome.rule=Host(`metronome.local.fuzzhouse.com`)"
+      - "traefik.http.middlewares.metronome-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.metronome.middlewares=adguardhome-https-redirect"
+      - "traefik.http.routers.metronome-secure.entrypoints=https"
+      - "traefik.http.routers.metronome-secure.rule=Host(`adguard.local.fuzzhouse.com`)"
+      - "traefik.http.routers.metronome-secure.tls=true"
+      - "traefik.http.routers.metronome-secure.service=adguardhome"
+      - "traefik.http.services.metronome.loadbalancer.server.port=8085"
+      - "traefik.docker.network=proxy"
