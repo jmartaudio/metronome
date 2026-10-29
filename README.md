@@ -4,31 +4,37 @@ A browser-based metronome served from a Docker container (nginx, linux/amd64).
 The click sound is generated in your browser with the Web Audio API, so open the
 page on whatever device you want to hear it from.
 
-## Run on your x86 server
+## Deploying
 
-Copy this folder to the server, then:
+Every push to `main` triggers a GitHub Actions workflow
+(`.github/workflows/docker-image.yml`). It builds the linux/amd64 image and
+publishes it as `ghcr.io/jmartaudio/metronome:latest`, plus a tag for each
+commit (`sha-xxxxxxx`).
+
+### Portainer (Community Edition)
+
+1. **Stacks → Add stack → Repository**
+2. Repository URL: `https://github.com/jmartaudio/metronome`,
+   reference `refs/heads/main`, compose path `docker-compose.yml`
+3. Deploy. Portainer only pulls the image; it never builds anything.
+
+To update: push to `main`, wait for the workflow to finish (the **Actions**
+tab on GitHub), then click **Pull and redeploy** on the stack in Portainer.
+
+The stack joins the external `proxy` network for Traefik, which serves it at
+`metronome.local.fuzzhouse.com`. It is also published directly on port 8085.
+
+### Plain Docker
 
 ```bash
-docker compose up -d --build
+docker compose pull && docker compose up -d
 ```
 
-Open `http://<server-ip>:8080`. Change the left side of `"8080:80"` in
-`docker-compose.yml` to use a different port.
-
-Without Compose:
+### Building locally
 
 ```bash
 docker build --platform linux/amd64 -t metronome .
-docker run -d --name metronome -p 8080:80 --restart unless-stopped metronome
-```
-
-### Building on a Mac (Apple Silicon) and shipping the image
-
-```bash
-docker buildx build --platform linux/amd64 -t metronome --load .
-docker save metronome | gzip > metronome.tar.gz
-# copy to the server, then:
-gunzip -c metronome.tar.gz | docker load
+docker run --rm -p 8080:80 metronome
 ```
 
 ## Features
