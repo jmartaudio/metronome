@@ -1,0 +1,9 @@
+# Static metronome app served by nginx. Sound is generated in the visitor's
+# browser, so the server only needs to deliver the files.
+FROM nginx:1.27-alpine
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY public/ /usr/share/nginx/html/
+
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://127.0.0.1/ >/dev/null || exit 1

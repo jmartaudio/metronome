@@ -1,0 +1,8 @@
+services:
+  metronome:
+    build: .
+    image: metronome:latest
+    platform: linux/amd64
+    ports:
+      - "8080:80"
+    restart: unless-stopped
