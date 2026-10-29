@@ -161,6 +161,7 @@ function start() {
   timerWorker.postMessage('start');
   els.startStop.textContent = 'Stop';
   requestAnimationFrame(draw);
+  requestWakeLock();
 }
 
 function stop() {
@@ -169,7 +170,32 @@ function stop() {
   els.startStop.textContent = 'Start';
   drawQueue.length = 0;
   highlight(-1, -1);
+  releaseWakeLock();
 }
+
+// ---------- screen wake lock ----------
+// Keeps a phone's screen on while the metronome plays. Needs HTTPS (or
+// localhost); browsers without the API just behave as before.
+let wakeLock = null;
+
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator) || wakeLock) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    if (!playing) { releaseWakeLock(); return; } // stopped while we waited
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch (_) { /* denied, e.g. low battery mode — nothing to do */ }
+}
+
+function releaseWakeLock() {
+  if (wakeLock) wakeLock.release();
+  wakeLock = null;
+}
+
+// The browser drops the lock whenever the page is hidden; take it back on return.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && playing) requestWakeLock();
+});
 
 // ---------- UI ----------
 const els = {
