@@ -6,7 +6,7 @@ services:
     ports:
       - "8085:80"
     restart: unless-stopped
-    - "traefik.enable=true"
+      - "traefik.enable=true"
       - "traefik.http.routers.metronome.entrypoints=http"
       - "traefik.http.routers.metronome.rule=Host(`metronome.local.fuzzhouse.com`)"
       - "traefik.http.middlewares.metronome-https-redirect.redirectscheme.scheme=https"
